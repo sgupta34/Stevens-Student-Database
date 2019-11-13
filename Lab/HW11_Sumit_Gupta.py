@@ -173,7 +173,7 @@ class Student:
         Return the list for pretty table
         """
         if not self.courses.items():
-            return [self.cwid, self.name, []]
+            return [self.cwid, self.name, self.major, []]
         return [self.cwid, self.name, self.major, sorted(list(self.courses.keys()))]
     def get_whole_info(self):
         """

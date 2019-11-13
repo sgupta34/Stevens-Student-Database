@@ -6,7 +6,7 @@ Created on Sun Oct 27 04:12:53 2019
 @CWID : 10441745
 """
 import unittest
-from HW10_Sumit_Gupta import file_reading_gen, Repository, main
+from HW11_Sumit_Gupta import file_reading_gen, Repository, main
 
 class TestRepository(unittest.TestCase):
     """
@@ -45,7 +45,8 @@ class TestRepository(unittest.TestCase):
                               'SYS 611': 'A'}],
                          '11658': ['11658', 'Kelly, P', 'SYEN', {'SSW 540': 'F'}],
                          '11714': ['11714', 'Morton, A', 'SYEN', {'SYS 611': 'A', 'SYS 645': 'C'}],
-                         '11788': ['11788', 'Fuller, E', 'SYEN', {'SSW 540': 'A'}]}
+                         '11788': ['11788', 'Fuller, E', 'SYEN', {'SSW 540': 'A'}]
+                         }
         instructors_info = {'98765': ['98765', 'Einstein, A', 'SFEN', {'SSW 567': 4, 'SSW 540': 3}],
                             '98764': ['98764', 'Feynman, R', 'SFEN', {'SSW 564': 3, 'SSW 687': 3, \
                                 'CS 501': 1, 'CS 545': 1}],
