@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 from collections import defaultdict
 from prettytable import PrettyTable
+import sqlite3
 
 def file_reading_gen(path, sep='\t', head=False):
     """
@@ -31,35 +32,46 @@ class Repository:
     """
     Repository of All the data for a university
     """
-    def __init__(self, directory=os.getcwd()):
+    def __init__(self, directory=os.getcwd(), display_table=True):
         """
         Initialize all the dictionary and print the pretty table
         """
-        file_path = Path(directory)
-        if file_path.exists():
-            try:
+        try:
+            file_path = Path(directory)
+            if file_path.exists():
                 self.student_path = os.path.join(directory, 'students.txt')
                 self.instructor_path = os.path.join(directory, 'instructors.txt')
                 self.grade_path = os.path.join(directory, 'grades.txt')
                 self.major_path = os.path.join(directory, 'majors.txt')
+                self.instructor_db_path = os.path.join(directory, '810_startup.db')
                 self.students = dict()
                 self.instructors = dict()
                 self.majors = dict()
+                self.query_list = list()
                 self.major_file()
                 self.student_file()
                 self.instructor_file()
                 self.grades_file()
-                self.major_table()
-                self.student_table()
-                self.instructor_table()
-            except ValueError as err:
-                print(err)
-            except FileNotFoundError as err:
-                print(err)
-            except:
-                print("Unexpected error encountered!")
-        else:
-            raise FileNotFoundError(f"No such Diectory as : {directory}")
+                self.get_instructor_db()
+                if display_table:
+                    print("Major Summary")
+                    self.major_table()
+                    print("Student Summary")
+                    self.student_table()
+                    print("Instructors Summary from file")
+                    self.instructor_table()
+                    print("Instructors Summary using Database")
+                    self.instructor_table_db()
+            else:
+                raise FileNotFoundError(f"No such Diectory as : {directory}")
+        except ValueError as err:
+            print(f"ValueError: {err}")
+        except FileNotFoundError as err:
+            print(f"FileNotFoundError: {err}")
+        except sqlite3.OperationalError as err:
+            print(f"SQL OperationalError: {err}")
+        except:
+            print("An unexpected Error was encountered!")
 
     def major_file(self):
         """
@@ -75,7 +87,7 @@ class Repository:
         """
         Add Student data into the dictionary from file
         """
-        for info in file_reading_gen(self.student_path, ';', True):
+        for info in file_reading_gen(self.student_path, '\t', True):
             cwid, name, major = info
             if major not in self.majors:
                 raise ValueError(f'Major {major} not in system')
@@ -89,18 +101,38 @@ class Repository:
         """
         Add instructor data into the dictionary from file
         """
-        for info in file_reading_gen(self.instructor_path, '|', True):
+        for info in file_reading_gen(self.instructor_path, '\t', True):
             cwid, name, department = info
             if cwid not in self.instructors:
                 self.instructors[cwid] = Instructor(info)
             else:
                 raise ValueError(f'Instructor name {name} with CWID {cwid}\
                      of department {department} is already present in the system.')
+
+    def instructor_table_db(self):
+        database = sqlite3.connect(self.instructor_db_path)
+        query = """select i.CWID, i.Name, i.Dept, g.Course, count(*) as Stuents 
+                    from instructors i left outer join grades g 
+                    on g.InstructorCWID=i.CWID 
+                    group by  i.CWID, i.Name, i.Dept, g.Course"""
+        pre_db_table = PrettyTable(field_names=Instructor.pti_header)
+        for row in database.execute(query):
+            pre_db_table.add_row(row)
+        print(pre_db_table)
+
+    def get_instructor_db(self):
+        database = sqlite3.connect(self.instructor_db_path)
+        query = """select i.CWID, i.Name, i.Dept, g.Course, count(*) as Stuents 
+                    from instructors i left outer join grades g 
+                    on g.InstructorCWID=i.CWID 
+                    group by  i.CWID, i.Name, i.Dept, g.Course"""
+        self.query_list = list(database.execute(query))
+
     def grades_file(self):
         """
         Use grate.txt to add_course to Student and Instructor Classes
         """
-        for info in file_reading_gen(self.grade_path, '|', True):
+        for info in file_reading_gen(self.grade_path, '\t', True):
             if len(info) != 4 or any(item.isspace() for item in info) or '' in info:
                 raise ValueError("Grade file format is bad!!")
             cwid_student, course, letter_grade, cwid_instructor = info
@@ -124,7 +156,7 @@ class Repository:
             for item in courses:
                 student_info.append(item)
             pre_table.add_row(student_info)
-        return pre_table
+        print(pre_table)
 
     def instructor_table(self):
         """
@@ -135,7 +167,7 @@ class Repository:
         for instructor in self.instructors.values():
             for row in instructor.get_info():
                 pre_table.add_row(row)
-        return pre_table
+        print(pre_table)
 
     def major_table(self):
         """
@@ -144,7 +176,7 @@ class Repository:
         pre_table = PrettyTable(field_names=Major.ptm_header)
         for major in self.majors.values():
             pre_table.add_row(major.get_info())
-        return pre_table
+        print(pre_table)
 
 class Student:
     """
@@ -290,10 +322,4 @@ def main():
     Main function to control the floq of code
     """
     dir_path = "Test"
-    stevens = Repository(dir_path)
-    print("Major Summary")
-    print(stevens.major_table())
-    print("Student Summary")
-    print(stevens.student_table())
-    print("Instructors Summary")
-    print(stevens.instructor_table())
+    stevens = Repository(dir_path, True)
