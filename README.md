@@ -1,4 +1,5 @@
-# week-10
+# week-12
+Assignment 12
 The Stevens community is very excited about the work you've been doing to gather information about students, classes, and instructors.  Your work is so popular that the community is asking for a website so everyone can see the results.
 
 Your assignment is build a new web page to display a summary of each Instructor with her CWID, Name, Department, Course, and the number of students in the course.   For example, here's a screen dump of my solution:
