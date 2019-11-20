@@ -322,4 +322,4 @@ def main():
     Main function to control the floq of code
     """
     dir_path = "Test"
-    stevens = Repository(dir_path, True)
+    _ = Repository(dir_path, True)

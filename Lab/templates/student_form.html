@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block body %}
+<h2>Please choose a student</h2>
+<br>
+<form action="student_details" method="post">
+    <!--Drop down list-->
+    <select name="cwid" id="">
+        {%for item in student%}
+        <option value="{{item.cwid}}">{{item.name}}</option>
+        {% endfor %}
+    </select>
+    <br>
+    <input type="submit">
+</form>
+
+{% endblock  %}
